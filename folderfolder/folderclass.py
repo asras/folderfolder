@@ -1,5 +1,3 @@
-
-
 class FolderFolder:
 	def __init__(self, path='.', levels=5, file_filter=None, folder_filter=None):
 		from pathlib import Path
@@ -110,7 +108,7 @@ class FolderFolder:
 			return result
 
 
-	def copy_structure(self, destination='.'):
+	def copy_structure(self, destination='.', rename_fct=None):
 		import os, shutil
 		from pathlib import Path
 
@@ -120,7 +118,6 @@ class FolderFolder:
 		folder_name = to_name(self.path.absolute())
 		dest_path = Path(destination).absolute()
 		if not dest_path.is_dir():
-			#print(str(dest_path.absolute()))
 			os.mkdir(str(dest_path))
 
 		full_dest_name = str(dest_path.joinpath(folder_name).absolute())
@@ -129,13 +126,13 @@ class FolderFolder:
 			os.mkdir(full_dest_name)
 
 		for fobj in self.files:
-			shutil.copy2(str(fobj), full_dest_name)
+			if rename_fct is not None:
+				fname = fobj.name
+				nfname = rename_fct(fname)
+				ndest_name = str(dest_path.joinpath(folder_name).joinpath(nfname).absolute())
+				shutil.copy2(str(fobj), ndest_name)
+			else:
+				shutil.copy2(str(fobj), full_dest_name)
 
 		for folder in self.subfolders:
-			folder.copy_structure(destination=full_dest_name)
-
-
-
-
-# TODO Implement renaming of files/folders, maybe in copy function
-# Implement symlink utility in copy
+			folder.copy_structure(destination=full_dest_name, rename_fct=rename_fct)

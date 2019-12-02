@@ -1,8 +1,0 @@
-README.md
-setup.py
-folderfolder/__init__.py
-folderfolder/folderclass.py
-folderfolder.egg-info/PKG-INFO
-folderfolder.egg-info/SOURCES.txt
-folderfolder.egg-info/dependency_links.txt
-folderfolder.egg-info/top_level.txt

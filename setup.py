@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="folderfolder", 
-    version="0.1",
+    version="0.13",
     author="Asbjorn Rasmussen",
     author_email="asras28@gmail.com",
     description="A package for manipulating large folder structures",
