@@ -1,5 +1,5 @@
 class FolderFolder:
-	def __init__(self, path='.', levels=5, file_filter=None, folder_filter=None):
+	def __init__(self, path='.', levels=5, file_filter=None, folder_filter=None, collect_folder=False):
 		from pathlib import Path
 		from types import FunctionType
 		if type(path) == str:
@@ -8,10 +8,10 @@ class FolderFolder:
 			self.path = path
 		assert self.path is not None, 'Path cannot be None'
 
-		if file_filter is None:
-			file_filter = lambda x: True
-		elif type(file_filter) != FunctionType:
-			raise ValueError('File filter must be a function returning a boolean')
+		# if file_filter is None:
+		# 	file_filter = lambda x: True
+		# elif type(file_filter) != FunctionType:
+		# 	raise ValueError('File filter must be a function returning a boolean')
 
 		if folder_filter is None:
 			folder_filter = lambda x: True
@@ -20,13 +20,19 @@ class FolderFolder:
 
 		self.files = []
 		self.subfolders = []
+		collect_folder = folder_filter([y for y in self.path.iterdir() if y.is_file()])
 		for x in self.path.iterdir():
-			if x.is_dir() and folder_filter(x) and levels > 0:
+			if x.is_dir():
+				folder_pass = folder_filter([y for y in x.iterdir() if y.is_file()])
+			if x.is_dir() and (folder_pass or any(y.is_dir() for y in x.iterdir())) and levels > 0:
 				subfolder = FolderFolder(path=str(x), levels=levels - 1,
 										file_filter=file_filter,
-										folder_filter=folder_filter)
+										folder_filter=folder_filter,
+										collect_folder=folder_pass)
 				self.subfolders.append(subfolder)
-			elif x.is_file() and file_filter(x):
+			elif file_filter is not None and x.is_file() and file_filter(x):
+				self.files.append(x)
+			elif file_filter is None and collect_folder and x.is_file():
 				self.files.append(x)
 
 		self.prune()
