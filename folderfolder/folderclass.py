@@ -122,7 +122,7 @@ class FolderFolder:
             result = reduce(lambda a, b: a + b, results, [])
             return result
 
-    def copy_structure(self, destination='.', rename_fct=None):
+    def copy_folders(self, destination='.', rename_fct=None):
         import os
         import shutil
         from pathlib import Path
