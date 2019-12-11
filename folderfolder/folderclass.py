@@ -41,7 +41,7 @@ class FolderFolder:
                 self.files.append(x)
             elif file_filter is None and collect_folder and x.is_file():
                 self.files.append(x)
-        
+
         # Use this flag to only run pruning once
         if should_prune:
             prune_result = self.prune()
