@@ -154,5 +154,5 @@ class FolderFolder:
                 shutil.copy2(str(fobj), full_dest_name)
 
         for folder in self.subfolders:
-            folder.copy_structure(destination=full_dest_name,
+            folder.copy_folders(destination=full_dest_name,
                                   rename_fct=rename_fct)
