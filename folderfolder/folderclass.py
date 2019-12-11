@@ -1,7 +1,8 @@
 class FolderFolder:
     def __init__(self, path='.', levels=5,
                  file_filter=None, folder_filter=None,
-                 collect_folder=None):
+                 collect_folder=None,
+                 should_prune=True):
         from pathlib import Path
         from types import FunctionType
         if type(path) == str:
@@ -33,14 +34,21 @@ class FolderFolder:
                 subfolder = FolderFolder(path=str(x), levels=levels - 1,
                                          file_filter=file_filter,
                                          folder_filter=folder_filter,
-                                         collect_folder=folder_pass)
+                                         collect_folder=folder_pass,
+                                         should_prune=False)
                 self.subfolders.append(subfolder)
             elif file_filter is not None and x.is_file() and file_filter(x):
                 self.files.append(x)
             elif file_filter is None and collect_folder and x.is_file():
                 self.files.append(x)
-
-        self.prune()
+        
+        # Use this flag to only run pruning once
+        if should_prune:
+            prune_result = self.prune()
+            if prune_result is None:
+                # The whole tree is empty
+                self.subfolders = []
+                self.files = []
 
     def prune(self):
         if len(self.subfolders) == 0:
