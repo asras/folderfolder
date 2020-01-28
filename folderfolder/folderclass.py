@@ -2,7 +2,8 @@ class FolderFolder:
     def __init__(self, path='.', levels=5,
                  file_filter=None, folder_filter=None,
                  collect_folder=None,
-                 should_prune=True):
+                 should_prune=True,
+                 skip_error=True):
         from pathlib import Path
         from types import FunctionType
         if type(path) == str:
@@ -20,26 +21,35 @@ class FolderFolder:
         self.files = []
         self.subfolders = []
 
+        
         # Check if this folder should be collected
         if collect_folder is None:
-            files = [y for y in self.path.iterdir() if y.is_file()]
+            files = [y for y in self.path.iterdir() if self.is_file(y, skip_error=skip_error)]
             collect_folder = folder_filter(files)
+            
         for x in self.path.iterdir():
+            has_permission, e = self.permission_check(x)
+            if not has_permission:
+                if skip_error:
+                    continue
+                else:
+                    raise e
+
             if x.is_dir():
-                x_files = [y for y in x.iterdir() if y.is_file()]
+                x_files = [y for y in x.iterdir() if self.is_file(y, skip_error=skip_error)]
                 folder_pass = folder_filter(x_files)
             if (x.is_dir() and
-               (folder_pass or any(y.is_dir() for y in x.iterdir())) and
-               levels > 0):
+                (folder_pass or any(y.is_dir() for y in x.iterdir())) and
+                levels > 0):
                 subfolder = FolderFolder(path=str(x), levels=levels - 1,
                                          file_filter=file_filter,
                                          folder_filter=folder_filter,
                                          collect_folder=folder_pass,
                                          should_prune=False)
                 self.subfolders.append(subfolder)
-            elif file_filter is not None and x.is_file() and file_filter(x):
+            elif file_filter is not None and self.is_file(x, skip_error=skip_error) and file_filter(x):
                 self.files.append(x)
-            elif file_filter is None and collect_folder and x.is_file():
+            elif file_filter is None and collect_folder and self.is_file(x, skip_error=skip_error):
                 self.files.append(x)
 
         # Use this flag to only run pruning once
@@ -49,6 +59,23 @@ class FolderFolder:
                 # The whole tree is empty
                 self.subfolders = []
                 self.files = []
+
+    def permission_check(self, fobj):
+        try:
+            fobj.is_dir()
+        except Exception as e:
+            return False, e
+        return True, None
+
+    def is_file(self, fobj, skip_error=True):
+        try:
+            fobj.is_file()
+        except Exception as e:
+            if skip_error:
+                return False
+            else:
+                raise e
+        return True
 
     def prune(self):
         if len(self.subfolders) == 0:
